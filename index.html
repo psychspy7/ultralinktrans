@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#040202" />
+  <meta name="description" content="ULTRALINK by KITTY CORP converts text into near-ultrasonic audio, decodes it back to text, and listens live through your microphone." />
+  <title>ULTRALINK — Text over near-ultrasound</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+  <div class="flare flare-a" aria-hidden="true"></div>
+  <div class="flare flare-b" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="ULTRALINK home">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span>ULTRA<span class="brand-slash">/</span>LINK</span>
+    </a>
+    <div class="topbar-status">
+      <span class="status-dot"></span>
+      <span>18.0–19.4 kHz carrier</span>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero section-shell">
+      <div class="hero-copy">
+        <div class="eyebrow"><span>LOCAL AUDIO PROTOCOL</span><b>01</b></div>
+        <h1>Text, carried<br><em>above the noise.</em></h1>
+        <p class="hero-deck">Encode a message into a near-ultrasonic audio packet, send it through a speaker, then recover the text from a file or a live microphone. Everything runs in your browser.</p>
+        <div class="hero-actions">
+          <button class="btn btn-primary" data-jump="encode">Encode a message <span>↗</span></button>
+          <button class="btn btn-ghost" data-jump="live">Open live listener</button>
+        </div>
+        <div class="hero-meta">
+          <div><span>Protocol</span><strong>ULNK / v1</strong></div>
+          <div><span>Audio</span><strong>48 kHz mono</strong></div>
+          <div><span>Integrity</span><strong>CRC-16</strong></div>
+        </div>
+      </div>
+
+      <div class="hero-visual" aria-label="Animated signal system visualization">
+        <canvas id="systemCanvas"></canvas>
+        <div class="core-orbit orbit-a"></div>
+        <div class="core-orbit orbit-b"></div>
+        <div class="core-label">
+          <span>CHANNEL</span>
+          <strong>ULNK-01</strong>
+          <small>ACTIVE / LOCAL</small>
+        </div>
+        <div class="signal-chip chip-a"><span>TX</span><b>19.4</b><small>kHz</small></div>
+        <div class="signal-chip chip-b"><span>RX</span><b>18.0</b><small>kHz</small></div>
+      </div>
+    </section>
+
+    <section class="workbench section-shell" id="workbench">
+      <div class="section-heading">
+        <div class="eyebrow"><span>TRANSMISSION CONSOLE</span><b>02</b></div>
+        <h2>Encode. Decode. Listen.</h2>
+        <p>One packet format across downloaded audio, uploaded audio, and live phone-to-phone transmission.</p>
+      </div>
+
+      <div class="console">
+        <div class="console-tabs" role="tablist" aria-label="Ultralink tools">
+          <button class="tab active" role="tab" aria-selected="true" data-tab="encode"><span>01</span> Encode</button>
+          <button class="tab" role="tab" aria-selected="false" data-tab="decode"><span>02</span> Decode</button>
+          <button class="tab" role="tab" aria-selected="false" data-tab="live"><span>03</span> Live listen</button>
+        </div>
+
+        <section class="panel active" id="panel-encode" data-panel="encode">
+          <div class="panel-grid">
+            <div class="input-zone">
+              <div class="field-head">
+                <label for="messageInput">Message payload</label>
+                <span id="byteCounter">0 / 320 bytes</span>
+              </div>
+              <textarea id="messageInput" maxlength="320" spellcheck="true" placeholder="Type something to transmit…">Hello from ULTRALINK.</textarea>
+              <div class="encode-options">
+                <div class="spec-card"><span>0 carrier</span><strong>18.0 kHz</strong></div>
+                <div class="spec-card"><span>1 carrier</span><strong>19.4 kHz</strong></div>
+                <div class="spec-card"><span>Symbol</span><strong>20 ms</strong></div>
+              </div>
+              <button class="btn btn-primary btn-wide" id="generateBtn">Generate packet <span>↗</span></button>
+            </div>
+
+            <div class="result-zone" id="encodeResult">
+              <div class="visualizer-wrap">
+                <canvas id="waveCanvas"></canvas>
+                <div class="viz-overlay"><span>ULTRASONIC PACKET</span><b id="packetState">READY</b></div>
+              </div>
+              <audio id="audioPlayer" controls preload="metadata"></audio>
+              <div class="packet-stats">
+                <div><span>Payload</span><strong id="statBytes">—</strong></div>
+                <div><span>Duration</span><strong id="statDuration">—</strong></div>
+                <div><span>Checksum</span><strong id="statCrc">—</strong></div>
+              </div>
+              <div class="download-row">
+                <button class="btn btn-primary" id="downloadMp3Btn" disabled>Download MP3</button>
+                <button class="btn btn-ghost" id="downloadWavBtn" disabled>Download WAV</button>
+              </div>
+              <p class="micro-note">WAV is the most reliable carrier. MP3 is generated as a high-bitrate 320 kbps stream designed to preserve these frequencies.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" id="panel-decode" data-panel="decode" hidden>
+          <div class="panel-grid">
+            <div class="input-zone">
+              <div class="field-head"><label>Ultrasonic audio file</label><span>MP3 / WAV / browser-supported audio</span></div>
+              <label class="drop-zone" id="dropZone" for="audioFileInput">
+                <input type="file" id="audioFileInput" accept="audio/*,.mp3,.wav" />
+                <span class="drop-icon">⇣</span>
+                <strong>Drop an ULTRALINK file here</strong>
+                <small>or tap to choose a file</small>
+              </label>
+              <div class="decode-file" id="decodeFileInfo" hidden>
+                <span id="decodeFileName">—</span><b id="decodeFileSize">—</b>
+              </div>
+              <button class="btn btn-primary btn-wide" id="decodeBtn" disabled>Decode audio <span>↗</span></button>
+            </div>
+
+            <div class="result-zone decode-output">
+              <div class="decode-status" id="decodeStatus">
+                <span class="status-ring"></span>
+                <div><small>DECODER</small><strong>Waiting for a packet</strong></div>
+              </div>
+              <div class="decoded-box">
+                <div class="field-head"><label for="decodedText">Recovered text</label><span id="decodeIntegrity">—</span></div>
+                <textarea id="decodedText" readonly placeholder="Decoded text will appear here."></textarea>
+              </div>
+              <div class="download-row">
+                <button class="btn btn-ghost" id="copyDecodedBtn" disabled>Copy text</button>
+                <button class="btn btn-primary" id="downloadTxtBtn" disabled>Download TXT</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" id="panel-live" data-panel="live" hidden>
+          <div class="live-layout">
+            <div class="live-radar">
+              <div class="radar-stage" id="radarStage">
+                <span class="radar-ring r1"></span><span class="radar-ring r2"></span><span class="radar-ring r3"></span>
+                <span class="radar-sweep"></span>
+                <div class="radar-core"><b id="liveCoreText">OFF</b><small>MIC</small></div>
+              </div>
+              <div class="meter"><i id="liveMeter"></i></div>
+              <div class="live-frequency"><span>Detected carrier</span><strong id="liveFreq">— kHz</strong></div>
+            </div>
+
+            <div class="live-copy">
+              <div class="field-head"><label>Live microphone decoder</label><span id="secureBadge">HTTPS required</span></div>
+              <h3>Let another phone speak.</h3>
+              <p>Start listening, then play an ULTRALINK packet from a nearby device. The decoder continuously watches for the preamble, validates the checksum, and reveals the message.</p>
+              <button class="btn btn-primary btn-wide" id="listenBtn">Start listening <span>●</span></button>
+              <div class="live-status-card">
+                <span id="liveStatusDot" class="status-dot"></span>
+                <div><small>STATUS</small><strong id="liveStatus">Microphone is idle</strong></div>
+              </div>
+              <div class="decoded-box live-text-box">
+                <div class="field-head"><label for="liveDecodedText">Live recovered text</label><span id="liveIntegrity">—</span></div>
+                <textarea id="liveDecodedText" readonly placeholder="Waiting for a valid ULNK packet…"></textarea>
+              </div>
+              <button class="btn btn-ghost btn-wide" id="clearLiveBtn">Clear live buffer</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="how section-shell">
+      <div class="section-heading compact">
+        <div class="eyebrow"><span>HOW THE SIGNAL MOVES</span><b>03</b></div>
+        <h2>A tiny protocol inside sound.</h2>
+      </div>
+      <div class="steps-grid">
+        <article><span>01</span><h3>Frame the text</h3><p>UTF-8 text becomes a versioned binary packet with payload length and CRC-16 integrity check.</p></article>
+        <article><span>02</span><h3>Modulate bits</h3><p>Each bit becomes one of two high-frequency carriers: 18.0 kHz for 0 and 19.4 kHz for 1.</p></article>
+        <article><span>03</span><h3>Recover locally</h3><p>The decoder detects the preamble, measures both carrier frequencies, reconstructs bytes, and validates the checksum.</p></article>
+      </div>
+    </section>
+
+    <section class="reality section-shell">
+      <div class="reality-panel">
+        <div>
+          <div class="eyebrow"><span>REAL-WORLD NOTE</span><b>04</b></div>
+          <h2>Near-ultrasonic, not magic.</h2>
+        </div>
+        <p>Phone speakers and microphones vary. Some devices heavily filter frequencies above ~18 kHz, and some people or animals may still hear them. For reliable tests, keep devices close, use a high media volume, avoid noisy rooms, and prefer WAV when possible.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer section-shell">
+    <div class="footer-mark">ULTRA/LINK <span>v1.0</span></div>
+    <p>Local-first experimental communication over near-ultrasonic audio.</p>
+    <a class="kitty-spotlight" href="https://kittycorp.vercel.app/" target="_blank" rel="noopener noreferrer">
+      <span class="kitty-star">✦</span>
+      <span><small>SPOTLIGHT</small><strong>Made by KITTY CORP</strong></span>
+      <b>↗</b>
+    </a>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="protocol.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "name": "ULTRALINK by KITTY CORP",
+  "short_name": "ULTRALINK",
+  "description": "Encode text into near-ultrasonic audio and decode it locally.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#040202",
+  "theme_color": "#040202",
+  "icons": [{"src":"favicon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
