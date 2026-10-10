@@ -2,6 +2,10 @@
 
 ULTRALINK is a static, local-first browser prototype that transmits short UTF-8 text messages through near-ultrasonic audio.
 
+## Which UltraLink repository is this?
+
+This is the **static, backend-free prototype** in `ultralinktrans` with its own `ULNK v1` BFSK frame format. The separate [UltraLink](https://github.com/psychspy7/UltraLink) repository is a fuller Next.js app with a different acoustic protocol, test infrastructure and optional Firebase account features. The two builds are distinct, and interoperability should not be assumed without protocol testing.
+
 ## Features
 
 - Text → `ULNK v1` binary packet → 18.0 / 19.4 kHz BFSK audio
@@ -18,7 +22,8 @@ ULTRALINK is a static, local-first browser prototype that transmits short UTF-8 
 Microphone access requires a secure context. `localhost` counts as secure in current browsers.
 
 ```bash
-cd ultralink-kitty-corp
+git clone https://github.com/psychspy7/ultralinktrans.git
+cd ultralinktrans
 python3 -m http.server 8080
 ```
 
